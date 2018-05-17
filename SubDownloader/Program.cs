@@ -209,7 +209,7 @@ namespace SubDownloader
                 }
                 if (FailedMovies.Count > 0)
                 {
-                    output += "Faied to find subs for:\n";
+                    output += "Failed to find subs for:\n";
                     foreach (var s in FailedMovies)
                     {
                         output += s.OutputName();
@@ -278,13 +278,14 @@ namespace SubDownloader
                 {
                     subs = client.SearchSubtitlesFromQuery("eng", show.Name, show.Season, show.Episode);
                 }
+
                 if (subs.Any(i => i.LanguageName.Equals("English") && i.SubtitleFileName.Contains(".HI.")))
                 {
-                    sub = subs.FirstOrDefault(i => i.LanguageName.Equals("English") && i.SubtitleFileName.Contains(".HI."));
+                    sub = subs.FirstOrDefault(i => i.LanguageName.Equals("English") && i.SubtitleFileName.Contains(".HI.") && SubsCorrect(show, i));
                 }
                 else if (subs.Any(i => i.LanguageName.Equals("English")))
                 {
-                    sub = subs.FirstOrDefault(i => i.LanguageName.Equals("English"));
+                    sub = subs.FirstOrDefault(i => i.LanguageName.Equals("English") && SubsCorrect(show, i));
                 }
 
                 if (sub != null)
@@ -321,6 +322,23 @@ namespace SubDownloader
                 client = null;
                 return false;
             }
+        }
+
+        private static bool SubsCorrect(Show show, Subtitle i)
+        {
+            Regex regex = new Regex(@"[Ss](?<season>\d{1,2})[Ee](?<episode>\d{1,2})");
+            Match match = regex.Match(i.SubtitleFileName);
+            string name = "";
+            if (match.Success)
+            {
+                var fileName = Path.GetFileNameWithoutExtension(i.SubtitleFileName);
+                var season = match.Groups["season"].ToString();
+                var episode = match.Groups["episode"].ToString();
+                name = fileName.Replace('.', ' ').Remove(fileName.IndexOf(match.Groups[0].ToString())).Trim();
+                return (name.Equals(show.Name) && int.Parse(season).Equals(show.Season) && int.Parse(episode).Equals(show.Episode));
+            }
+
+            return false;
         }
 
         private static void AddShowList(List<Show> shows, string dirPath)
