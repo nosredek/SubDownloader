@@ -335,7 +335,7 @@ namespace SubDownloader
                 var season = match.Groups["season"].ToString();
                 var episode = match.Groups["episode"].ToString();
                 name = fileName.Replace('.', ' ').Remove(fileName.IndexOf(match.Groups[0].ToString())).Trim();
-                return (name.Equals(show.Name) && int.Parse(season).Equals(show.Season) && int.Parse(episode).Equals(show.Episode));
+                return (name.ToLower().Equals(show.Name.ToLower()) && int.Parse(season).Equals(show.Season) && int.Parse(episode).Equals(show.Episode));
             }
 
             return false;
